@@ -3,8 +3,12 @@ package com.ktotopawel.opsguard.service;
 import com.ktotopawel.opsguard.dto.IncidentRequest;
 import com.ktotopawel.opsguard.entity.Incident;
 import com.ktotopawel.opsguard.entity.Status;
+import com.ktotopawel.opsguard.entity.User;
 import com.ktotopawel.opsguard.exception.IncidentNotFoundException;
+import com.ktotopawel.opsguard.exception.UserNotFoundException;
 import com.ktotopawel.opsguard.repository.IncidentRepository;
+import com.ktotopawel.opsguard.repository.UserRepository;
+import com.ktotopawel.opsguard.security.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +18,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IncidentService {
     private final IncidentRepository repository;
+    private final UserRepository userRepository;
 
     public Incident reportIncident(IncidentRequest incidentRequest) {
         Incident incident = new Incident();
+        User userProxy = userRepository.getReferenceById(UserContext.get().id());
+        incident.setReportedBy(userProxy);
         incident.setDescription(incidentRequest.description());
         incident.setSeverity(incidentRequest.severity());
         return repository.save(incident);
