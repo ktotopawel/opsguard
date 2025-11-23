@@ -5,7 +5,6 @@ import com.ktotopawel.opsguard.entity.Incident;
 import com.ktotopawel.opsguard.entity.Status;
 import com.ktotopawel.opsguard.entity.User;
 import com.ktotopawel.opsguard.exception.IncidentNotFoundException;
-import com.ktotopawel.opsguard.exception.UserNotFoundException;
 import com.ktotopawel.opsguard.repository.IncidentRepository;
 import com.ktotopawel.opsguard.repository.UserRepository;
 import com.ktotopawel.opsguard.security.UserContext;
@@ -33,7 +32,7 @@ public class IncidentService {
         return repository.findAll();
     }
 
-    public Incident getIncident(Long incidentId) {
+    public Incident getIncidentById(Long incidentId) {
         return repository.findById(incidentId).orElseThrow(() -> new IncidentNotFoundException("Incident with id: " + incidentId + " not found"));
     }
 
@@ -42,7 +41,7 @@ public class IncidentService {
     }
 
     public Incident closeIncident(Long incidentId) {
-        Incident incident = getIncident(incidentId);
+        Incident incident = getIncidentById(incidentId);
         incident.setStatus(Status.CLOSED);
         return repository.save(incident);
     }

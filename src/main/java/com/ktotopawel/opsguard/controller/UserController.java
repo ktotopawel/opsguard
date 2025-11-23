@@ -2,12 +2,11 @@ package com.ktotopawel.opsguard.controller;
 
 import com.ktotopawel.opsguard.dto.UserRequest;
 import com.ktotopawel.opsguard.entity.User;
+import com.ktotopawel.opsguard.security.PublicEndpoint;
 import com.ktotopawel.opsguard.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("api/users")
@@ -15,6 +14,7 @@ import java.util.List;
 public class UserController {
     private final UserService service;
 
+    @PublicEndpoint
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User create(@RequestBody UserRequest userRequest) {
