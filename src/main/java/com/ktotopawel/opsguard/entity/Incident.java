@@ -39,4 +39,12 @@ public class Incident {
 
     @Column(nullable = false)
     private boolean deleted = false;
+
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private User reportedBy;
+
+    @ManyToOne
+    @JoinColumn
+    private User closedBy;
 }
