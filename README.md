@@ -29,16 +29,18 @@ OpsGuard is a Spring Boot application designed to demonstrate incident managemen
 ## Getting Started
 
 ### Prerequisites
-*   Java 21 SDK
-*   PostgreSQL database
-*   Google Cloud Platform credentials (for Pub/Sub)
-
-### Configuration
-Ensure your `application.properties` is configured with:
-*   PostgreSQL connection details (`spring.datasource.url`, etc.)
-*   GCP credentials and project ID.
+*   **Docker & Docker Compose**
 
 ### Running the Application
-```bash
-./mvnw spring-boot:run
-```
+The project is fully containerized, including the application, PostgreSQL database, and Google Pub/Sub emulator.
+
+1.  **Build and Start:**
+    ```bash
+    docker-compose up --build
+    ```
+
+2.  **Access the Application:**
+    The API will be available at `http://localhost:8080`.
+
+    *   **PostgreSQL:** Port `5432` (User: `admin`, Pass: `password`, DB: `opsguard`)
+    *   **Pub/Sub Emulator:** Port `8085`
