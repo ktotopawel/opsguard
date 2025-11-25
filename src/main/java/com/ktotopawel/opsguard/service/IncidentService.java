@@ -67,6 +67,7 @@ public class IncidentService {
     public Incident closeIncident(Long incidentId) {
         Incident incident = getIncidentById(incidentId);
         incident.setStatus(Status.CLOSED);
+        incident.setClosedBy(userRepository.getReferenceById(UserContext.get().id()));
         return repository.save(incident);
     }
 }
