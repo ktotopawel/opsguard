@@ -1,5 +1,7 @@
 services:
   app:
+    profiles:
+      - "prod"
     container_name: opsguard-app
     build: .
     ports:
@@ -17,6 +19,9 @@ services:
       SPRING_APPLICATION_JSON: '{"spring.cloud.gcp.pubsub.emulator-host":"pubsub:8085"}'
 
   postgres:
+    profiles:
+      - "prod"
+      - "dev"
     image: postgres:15-alpine
     container_name: opsguard-db
     environment:
@@ -27,6 +32,9 @@ services:
       - "5432:5432"
 
   pubsub:
+    profiles:
+      - "prod"
+      - "dev"
     image: google/cloud-sdk:emulators
     container_name: opsguard-pubsub
     command: gcloud beta emulators pubsub start --project=test-project --host-port=0.0.0.0:8085
