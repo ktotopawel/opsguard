@@ -41,10 +41,10 @@ public class Incident {
     private boolean deleted = false;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "reported_by_id", nullable = false)
     private User reportedBy;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "closed_by_id")
     private User closedBy;
 }
