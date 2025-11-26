@@ -8,6 +8,7 @@ import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 @Entity
@@ -47,4 +48,12 @@ public class Incident {
     @ManyToOne
     @JoinColumn(name = "closed_by_id")
     private User closedBy;
+
+    @ManyToMany
+    @JoinTable(
+            name = "incident_tags",
+            joinColumns = @JoinColumn(name = "incident_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags;
 }

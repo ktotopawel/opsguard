@@ -6,10 +6,7 @@ import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import com.ktotopawel.opsguard.config.PubSubConfig;
 import com.ktotopawel.opsguard.dto.IncidentRequest;
 import com.ktotopawel.opsguard.dto.IncidentResponse;
-import com.ktotopawel.opsguard.entity.Incident;
-import com.ktotopawel.opsguard.entity.Severity;
-import com.ktotopawel.opsguard.entity.Status;
-import com.ktotopawel.opsguard.entity.User;
+import com.ktotopawel.opsguard.entity.*;
 import com.ktotopawel.opsguard.exception.IncidentNotFoundException;
 import com.ktotopawel.opsguard.repository.IncidentRepository;
 import com.ktotopawel.opsguard.repository.UserRepository;
@@ -19,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,16 +27,26 @@ public class IncidentService {
     private final UserRepository userRepository;
     private final PubSubTemplate pubSubTemplate;
     private final ObjectMapper objectMapper;
+    private final TagService tagService;
 
     public Incident reportIncident(IncidentRequest incidentRequest) {
         Incident incident = new Incident();
         User userProxy = userRepository.getReferenceById(UserContext.get().id());
+
         incident.setReportedBy(userProxy);
         incident.setDescription(incidentRequest.description());
         incident.setSeverity(incidentRequest.severity());
+
+        Set<Tag> tags = incidentRequest.tags().stream()
+                .map(tagService::findOrCreate)
+                .collect(Collectors.toSet());
+        incident.setTags(tags);
+
         Incident savedIncident = repository.save(incident);
+
         if (savedIncident.getSeverity() == Severity.HIGH || savedIncident.getSeverity() == Severity.CRITICAL)
             publishAlert(incident);
+
         return savedIncident;
     }
 
