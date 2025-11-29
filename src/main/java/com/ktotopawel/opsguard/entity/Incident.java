@@ -6,12 +6,15 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
 @Entity
+@Audited
 @Table(name = "incidents")
 @SQLDelete(sql = "UPDATE incidents SET deleted = true WHERE id = ?")
 @SQLRestriction("deleted = false")
@@ -20,6 +23,7 @@ public class Incident {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotAudited
     @Column(nullable = false)
     private String description;
 
