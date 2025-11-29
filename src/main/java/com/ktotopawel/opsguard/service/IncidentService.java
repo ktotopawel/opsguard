@@ -6,19 +6,21 @@ import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import com.ktotopawel.opsguard.config.PubSubConfig;
 import com.ktotopawel.opsguard.dto.IncidentRequest;
 import com.ktotopawel.opsguard.dto.IncidentResponse;
-import com.ktotopawel.opsguard.entity.Incident;
-import com.ktotopawel.opsguard.entity.Severity;
-import com.ktotopawel.opsguard.entity.Status;
-import com.ktotopawel.opsguard.entity.User;
+import com.ktotopawel.opsguard.entity.*;
 import com.ktotopawel.opsguard.exception.IncidentNotFoundException;
 import com.ktotopawel.opsguard.repository.IncidentRepository;
 import com.ktotopawel.opsguard.repository.UserRepository;
 import com.ktotopawel.opsguard.security.UserContext;
+import com.ktotopawel.opsguard.spec.IncidentSpecification;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,16 +30,27 @@ public class IncidentService {
     private final UserRepository userRepository;
     private final PubSubTemplate pubSubTemplate;
     private final ObjectMapper objectMapper;
+    private final TagService tagService;
 
+    @Transactional
     public Incident reportIncident(IncidentRequest incidentRequest) {
         Incident incident = new Incident();
         User userProxy = userRepository.getReferenceById(UserContext.get().id());
+
         incident.setReportedBy(userProxy);
         incident.setDescription(incidentRequest.description());
         incident.setSeverity(incidentRequest.severity());
+
+        Set<Tag> tags = incidentRequest.tags().stream()
+                .map(tagService::findOrCreate)
+                .collect(Collectors.toSet());
+        incident.setTags(tags);
+
         Incident savedIncident = repository.save(incident);
+
         if (savedIncident.getSeverity() == Severity.HIGH || savedIncident.getSeverity() == Severity.CRITICAL)
             publishAlert(incident);
+
         return savedIncident;
     }
 
@@ -52,8 +65,15 @@ public class IncidentService {
         }
     }
 
-    public List<Incident> getIncidents() {
-        return repository.findAll();
+    public List<Incident> getIncidents(Set<String> tags, Set<Severity> severity) {
+        Specification<Incident> spec = Specification.unrestricted();
+        if (tags != null && !tags.isEmpty()) {
+            spec = spec.and(IncidentSpecification.hasTags(tags));
+        }
+        if (severity != null && !severity.isEmpty()) {
+            spec = spec.and(IncidentSpecification.hasSeverities(severity));
+        }
+        return repository.findAll(spec);
     }
 
     public Incident getIncidentById(Long incidentId) {

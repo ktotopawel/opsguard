@@ -31,11 +31,14 @@ public class UserController {
         return service.getUserById(id);
     }
 
-    // todo: replace with a query parameter
-    @GetMapping("/email/{email}")
-    @Operation(summary = "Get user by email", description = "Returns the user with the provided email")
-    public User getUserByEmail(@PathVariable String email) {
-        return service.getUserByEmail(email);
+    @GetMapping
+    @Operation(summary = "Get user by email", description = "Returns the user with the provided email or username, one of which must be passed to the endpoint as a request parameter.")
+    public User getUserByUniqueField(@RequestParam(required = false) String email, @RequestParam(required = false) String username) {
+        if (email != null && !email.isBlank()) {
+            return service.getUserByEmail(email);
+        } else if (username != null && !username.isBlank()) {
+            return service.getUserByUsername(username);
+        } else throw new IllegalArgumentException("Email or username is required");
     }
 
     @DeleteMapping("/{id}")
