@@ -25,7 +25,11 @@ public class UserService {
     }
 
     public User getUserByEmail(String email) {
-        return repository.findByEmail(email).orElseThrow();
+        return repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
+    }
+
+    public User getUserByUsername(String username) {
+        return repository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User with username " + username + " not found"));
     }
 
     public void deleteUserById(Long id) {

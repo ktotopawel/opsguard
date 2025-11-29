@@ -2,7 +2,6 @@ package com.ktotopawel.opsguard.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.SQLDelete;
 
 @Data
 @Entity
@@ -18,6 +17,6 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 }

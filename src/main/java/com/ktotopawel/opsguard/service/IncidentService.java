@@ -73,6 +73,7 @@ public class IncidentService {
         repository.deleteById(incidentId);
     }
 
+    // todo probably should clean up the tag? else the db might get wayyy too large (on the other hand, the users ehhh whatever problem for tommorow)
     public Incident closeIncident(Long incidentId) {
         Incident incident = getIncidentById(incidentId);
         incident.setStatus(Status.CLOSED);
