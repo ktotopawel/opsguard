@@ -11,8 +11,10 @@ import com.ktotopawel.opsguard.exception.IncidentNotFoundException;
 import com.ktotopawel.opsguard.repository.IncidentRepository;
 import com.ktotopawel.opsguard.repository.UserRepository;
 import com.ktotopawel.opsguard.security.UserContext;
+import com.ktotopawel.opsguard.spec.IncidentSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -61,9 +63,15 @@ public class IncidentService {
         }
     }
 
-    public List<Incident> getIncidents(Set<String> tags, Severity severity) {
-
-        return repository.findAll();
+    public List<Incident> getIncidents(Set<String> tags, Set<Severity> severity) {
+        Specification<Incident> spec = Specification.unrestricted();
+        if (tags != null && !tags.isEmpty()) {
+            spec = spec.and(IncidentSpecification.hasTags(tags));
+        }
+        if (severity != null && !severity.isEmpty()) {
+            spec = spec.and(IncidentSpecification.hasSeverities(severity));
+        }
+        return repository.findAll(spec);
     }
 
     public Incident getIncidentById(Long incidentId) {
