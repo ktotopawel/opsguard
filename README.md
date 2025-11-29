@@ -1,46 +1,95 @@
+### **Revised `README.md`**
+
 # OpsGuard
 
-OpsGuard is a Spring Boot application designed to demonstrate incident management capabilities with a RESTful API, database persistence, and asynchronous messaging integration.
+> A cloud-native Incident Response platform simulating high-availability enterprise architecture.
 
-## Features
+---
 
-### Incident Management
-*   **REST API:** Full CRUD operations for managing incidents.
-*   **Data Model:** Tracks incident details including description, severity, and status.
+## Architecture
 
-### User Management
-*   **User Profiles:** Create and retrieve user information.
-*   **Authentication:** Custom header-based authentication mechanism using `X-User-Id`.
-*   **Public Endpoints:** Specific endpoints (like User Creation) are accessible without authentication.
+```mermaid
+graph LR
+    User[Client / API] -->|HTTP POST| API[OpsGuard Service]
+    API -->|Persist| DB[(PostgreSQL)]
+    API -->|Audit Log| DB
+    API -->|Async Event| PubSub[Google Pub/Sub]
+    PubSub -->|Consume| Listener[Alert Consumer]
+````
 
-### Asynchronous Messaging
-*   **GCP Pub/Sub Integration:** Actively subscribes to a Google Cloud Pub/Sub topic (`CRIT_ALERT_SUB`) to consume and log critical alert messages.
+## Key Features
 
-## Technology Stack
+* **Cloud-Native Messaging:** Decoupled architecture using **Google Cloud Pub/Sub** for asynchronous critical alert propagation.
+* **Enterprise Compliance:** Full data auditing with **Hibernate Envers** (tracking *who* changed *what* and *when*).
+* **Database Version Control:** Schema evolution managed safely via **Flyway Migrations**.
+* **Advanced Search:** Dynamic filtering using **JPA Specifications** (e.g., find incidents by multiple Tags & Severity).
+* **Security:** Custom **Interceptor-based Authentication** mimicking an API Gateway (header-based Identity Context).
+* **Resilience:** Optimistic concurrency handling to prevent race conditions during high-load tag creation.
 
-*   **Language:** Java 21
-*   **Framework:** Spring Boot 3
-*   **Database:** PostgreSQL
-*   **ORM:** Spring Data JPA / Hibernate
-*   **Cloud Integration:** Spring Cloud GCP (Pub/Sub)
-*   **Utilities:** Lombok
-*   **Build Tool:** Maven
+## Tech Stack
 
-## Getting Started
+* **Java 21**
+* **Spring Boot 3.3**
+* **PostgreSQL 15**
+* **Google Cloud Pub/Sub**
+* **Docker & Docker Compose**
 
-### Prerequisites
-*   **Docker & Docker Compose**
+-----
 
-### Running the Application
-The project is fully containerized, including the application, PostgreSQL database, and Google Pub/Sub emulator.
+## Quick Start
 
-1.  **Build and Start:**
-    ```bash
-    docker-compose up --build
-    ```
+The project includes a fully containerized environment (App + DB + Cloud Emulator).
 
-2.  **Access the Application:**
-    The API will be available at `http://localhost:8080`.
+### Option A: Full Stack (Demo Mode)
 
-    *   **PostgreSQL:** Port `5432` (User: `admin`, Pass: `password`, DB: `opsguard`)
-    *   **Pub/Sub Emulator:** Port `8085`
+Run the entire application inside Docker.
+
+```bash
+docker-compose --profile prod up --build -d
+```
+
+* **API:** http://localhost:8080
+* **Swagger UI:** http://localhost:8080/swagger-ui/index.html
+
+### Option B: Developer Mode
+
+Run infrastructure in Docker, but run the Java App in your IDE (IntelliJ) for debugging.
+
+```bash
+docker-compose --profile dev up -d
+```
+
+-----
+
+## Testing the Loop
+
+**1. Create a User (Public Endpoint)**
+
+```bash
+curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"username": "sre_lead", "email": "admin@opsguard.com", "password": "secure"}'
+```
+
+**2. Report a CRITICAL Incident**
+*Requires Authentication Header*
+
+```bash
+curl -X POST http://localhost:8080/api/incidents \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: 1" \
+  -d '{
+    "description": "Production DB Latency Spike", 
+    "severity": "CRITICAL", 
+    "tags": ["Infra", "Database"]
+  }'
+```
+
+**3. Verify the Flow**
+Check the logs (`docker logs opsguard-app`) to see the event lifecycle:
+
+1.  `INFO: Created GCP Pub/Sub topic crit-alert`
+2.  `INFO: Published incident with id 1...`
+3.  `INFO: [CONSUMER] Received message: {...}`
+
+<!-- end list -->
