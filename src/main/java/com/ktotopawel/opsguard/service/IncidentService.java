@@ -12,6 +12,7 @@ import com.ktotopawel.opsguard.repository.IncidentRepository;
 import com.ktotopawel.opsguard.repository.UserRepository;
 import com.ktotopawel.opsguard.security.UserContext;
 import com.ktotopawel.opsguard.spec.IncidentSpecification;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,6 +32,7 @@ public class IncidentService {
     private final ObjectMapper objectMapper;
     private final TagService tagService;
 
+    @Transactional
     public Incident reportIncident(IncidentRequest incidentRequest) {
         Incident incident = new Incident();
         User userProxy = userRepository.getReferenceById(UserContext.get().id());
