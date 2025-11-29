@@ -19,6 +19,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,7 +52,7 @@ public class IncidentServiceTest {
         Long userId = 1L;
         UserContext.set(userId);
 
-        IncidentRequest request = new IncidentRequest(userId, "Minor bug", Severity.LOW);
+        IncidentRequest request = new IncidentRequest("Minor bug", Severity.LOW, List.of("FRONTEND", "UI"));
         User mockUserProxy = new User();
         mockUserProxy.setId(userId);
 
@@ -75,7 +77,7 @@ public class IncidentServiceTest {
         User mockUserProxy = new User();
         mockUserProxy.setId(userId);
 
-        IncidentRequest request = new IncidentRequest(userId, "Prod servers down", Severity.CRITICAL);
+        IncidentRequest request = new IncidentRequest("Prod servers down", Severity.CRITICAL, List.of("INFRA", "SERVERS"));
 
         when(userRepository.getReferenceById(userId)).thenReturn(mockUserProxy);
         when(repository.save(any(Incident.class))).thenAnswer(invocationOnMock -> {
