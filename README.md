@@ -1,5 +1,3 @@
-### **Revised `README.md`**
-
 # OpsGuard
 
 > A cloud-native Incident Response platform simulating high-availability enterprise architecture.
