@@ -6,10 +6,7 @@ import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import com.ktotopawel.opsguard.config.PubSubConfig;
 import com.ktotopawel.opsguard.dto.AssignRequest;
 import com.ktotopawel.opsguard.dto.IncidentRequest;
-import com.ktotopawel.opsguard.entity.Incident;
-import com.ktotopawel.opsguard.entity.Severity;
-import com.ktotopawel.opsguard.entity.Status;
-import com.ktotopawel.opsguard.entity.User;
+import com.ktotopawel.opsguard.entity.*;
 import com.ktotopawel.opsguard.exception.IllegalOperationException;
 import com.ktotopawel.opsguard.repository.IncidentRepository;
 import com.ktotopawel.opsguard.repository.UserRepository;
@@ -29,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-
 @ExtendWith(MockitoExtension.class)
 public class IncidentServiceTest {
     @Mock
@@ -42,6 +38,8 @@ public class IncidentServiceTest {
     private ObjectMapper objectMapper;
     @Mock
     private UserService userService;
+    @Mock
+    private TagService tagService;
 
     @InjectMocks
     private IncidentService incidentService;
@@ -62,6 +60,13 @@ public class IncidentServiceTest {
         mockUserProxy.setId(userId);
 
         when(userRepository.getReferenceById(userId)).thenReturn(mockUserProxy);
+
+        when(tagService.findOrCreate(anyString())).thenAnswer(i -> {
+            Tag t = new Tag();
+            t.setName(i.getArgument(0));
+            return t;
+        });
+
         when(repository.save(any(Incident.class))).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
 
         Incident result = incidentService.reportIncident(request);
@@ -70,7 +75,6 @@ public class IncidentServiceTest {
         assertEquals(userId, result.getReportedBy().getId());
 
         verify(repository, times(1)).save(any(Incident.class));
-
         verifyNoInteractions(pubSubTemplate);
     }
 
@@ -85,6 +89,9 @@ public class IncidentServiceTest {
         IncidentRequest request = new IncidentRequest("Prod servers down", Severity.CRITICAL, List.of("INFRA", "SERVERS"));
 
         when(userRepository.getReferenceById(userId)).thenReturn(mockUserProxy);
+
+        when(tagService.findOrCreate(anyString())).thenReturn(new Tag());
+
         when(repository.save(any(Incident.class))).thenAnswer(invocationOnMock -> {
             Incident incident = invocationOnMock.getArgument(0);
             incident.setId(500L);
@@ -133,21 +140,17 @@ public class IncidentServiceTest {
     void testAssignUserWithAlreadyClosedIncident() {
         Long userId = 1L;
         UserContext.set(userId);
-        User mockUserProxy = new User();
-        mockUserProxy.setId(userId);
 
         Incident incident = new Incident();
         incident.setId(500L);
         incident.setStatus(Status.CLOSED);
         incident.setDescription("db is slow");
 
-        when(userService.getUserById(userId)).thenReturn(null);
         when(repository.findById(500L)).thenReturn(Optional.of(incident));
 
         assertThrows(IllegalOperationException.class, () -> {
-            incidentService.assignUser(incident.getId(), new AssignRequest(1L));
+            incidentService.assignUser(incident.getId(), new AssignRequest(2L));
         });
         verify(repository, never()).save(any(Incident.class));
     }
-
 }
