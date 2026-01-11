@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public record IncidentResponse(Long id, String description, Severity severity, Status status, Long reporterId, String reporterUsername, LocalDateTime createdAt, Set<String> tagNames) {
+public record IncidentResponse(Long id, String description, Severity severity, Status status, Long reporterId, String reporterUsername, LocalDateTime createdAt, Set<String> tagNames, Long assignedTo) {
 
     public static IncidentResponse from(Incident incident) {
         return new IncidentResponse(
@@ -20,7 +20,8 @@ public record IncidentResponse(Long id, String description, Severity severity, S
                 incident.getReportedBy().getId(),
                 incident.getReportedBy().getUsername(),
                 incident.getCreatedAt(),
-                incident.getTags().stream().map(Tag::getName).collect(Collectors.toSet())
+                incident.getTags().stream().map(Tag::getName).collect(Collectors.toSet()),
+                incident.getAssignedTo() != null ? incident.getAssignedTo().getId() : null
         );
     }
 }
