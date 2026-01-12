@@ -14,6 +14,7 @@ import com.ktotopawel.opsguard.repository.IncidentRepository;
 import com.ktotopawel.opsguard.repository.UserRepository;
 import com.ktotopawel.opsguard.security.UserContext;
 import com.ktotopawel.opsguard.spec.IncidentSpecification;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -95,13 +96,17 @@ public class IncidentService {
     }
 
     public Incident assignUser(Long incidentId, AssignRequest assignRequest) {
-        Incident incident = getIncidentById(incidentId);
-        if (incident.getStatus().equals(Status.CLOSED)) {
-            throw new IllegalOperationException("Incident with id: " + incidentId + " is already closed");
+        try {
+            Incident incident = getIncidentById(incidentId);
+            if (incident.getStatus().equals(Status.CLOSED)) {
+                throw new IllegalOperationException("Incident with id: " + incidentId + " is already closed");
+            }
+            incident.setStatus(Status.IN_PROGRESS);
+            User assignee = userService.getUserById(assignRequest.assigneeId());
+            incident.setAssignedTo(assignee);
+            return repository.save(incident);
+        } catch (OptimisticLockException e) {
+            throw new IllegalOperationException("Incident was modified by another user.");
         }
-        incident.setStatus(Status.IN_PROGRESS);
-        User assignee = userService.getUserById(assignRequest.assigneeId());
-        incident.setAssignedTo(assignee);
-        return repository.save(incident);
     }
 }

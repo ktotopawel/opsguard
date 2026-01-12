@@ -23,6 +23,9 @@ public class Incident {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     @NotAudited
     @Column(nullable = false)
     private String description;
