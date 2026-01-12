@@ -4,14 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.spring.pubsub.core.PubSubTemplate;
 import com.ktotopawel.opsguard.config.PubSubConfig;
+import com.ktotopawel.opsguard.dto.AssignRequest;
 import com.ktotopawel.opsguard.dto.IncidentRequest;
 import com.ktotopawel.opsguard.dto.IncidentResponse;
 import com.ktotopawel.opsguard.entity.*;
+import com.ktotopawel.opsguard.exception.IllegalOperationException;
 import com.ktotopawel.opsguard.exception.IncidentNotFoundException;
 import com.ktotopawel.opsguard.repository.IncidentRepository;
 import com.ktotopawel.opsguard.repository.UserRepository;
 import com.ktotopawel.opsguard.security.UserContext;
 import com.ktotopawel.opsguard.spec.IncidentSpecification;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +34,7 @@ public class IncidentService {
     private final PubSubTemplate pubSubTemplate;
     private final ObjectMapper objectMapper;
     private final TagService tagService;
+    private final UserService userService;
 
     @Transactional
     public Incident reportIncident(IncidentRequest incidentRequest) {
@@ -89,5 +93,20 @@ public class IncidentService {
         incident.setStatus(Status.CLOSED);
         incident.setClosedBy(userRepository.getReferenceById(UserContext.get().id()));
         return repository.save(incident);
+    }
+
+    public Incident assignUser(Long incidentId, AssignRequest assignRequest) {
+        try {
+            Incident incident = getIncidentById(incidentId);
+            if (incident.getStatus().equals(Status.CLOSED)) {
+                throw new IllegalOperationException("Incident with id: " + incidentId + " is already closed");
+            }
+            incident.setStatus(Status.IN_PROGRESS);
+            User assignee = userService.getUserById(assignRequest.assigneeId());
+            incident.setAssignedTo(assignee);
+            return repository.save(incident);
+        } catch (OptimisticLockException e) {
+            throw new IllegalOperationException("Incident was modified by another user.");
+        }
     }
 }

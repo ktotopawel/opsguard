@@ -1,5 +1,6 @@
 package com.ktotopawel.opsguard.controller;
 
+import com.ktotopawel.opsguard.dto.AssignRequest;
 import com.ktotopawel.opsguard.dto.IncidentRequest;
 import com.ktotopawel.opsguard.dto.IncidentResponse;
 import com.ktotopawel.opsguard.entity.Severity;
@@ -49,5 +50,11 @@ public class IncidentController {
     @Operation(summary = "Close an incident", description = "Closes an incident, effectively marking it as \"Done\"")
     public IncidentResponse close(@PathVariable Long id) {
         return IncidentResponse.from(service.closeIncident(id));
+    }
+
+    @PatchMapping("/{id}/assign")
+    @Operation(summary = "Assign a user to an incident", description = "Assigns a user with the id passed in the body to the incident of the specified id")
+    public IncidentResponse assign(@PathVariable Long id, @RequestBody AssignRequest assignRequest) {
+        return IncidentResponse.from(service.assignUser(id, assignRequest));
     }
 }
