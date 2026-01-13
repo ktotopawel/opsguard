@@ -5,18 +5,20 @@ import com.ktotopawel.opsguard.entity.User;
 import com.ktotopawel.opsguard.exception.UserNotFoundException;
 import com.ktotopawel.opsguard.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     final private UserRepository repository;
+    final private PasswordEncoder passwordEncoder;
 
     public User createUser(UserRequest userRequest) {
        User newUser = new User();
        newUser.setEmail(userRequest.email());
        newUser.setUsername(userRequest.username());
-       newUser.setPassword(userRequest.password());
+       newUser.setPassword(passwordEncoder.encode(userRequest.password()));
        return repository.save(newUser);
     }
 
