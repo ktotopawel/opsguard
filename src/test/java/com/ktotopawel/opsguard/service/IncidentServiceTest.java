@@ -10,7 +10,7 @@ import com.ktotopawel.opsguard.entity.*;
 import com.ktotopawel.opsguard.exception.IllegalOperationException;
 import com.ktotopawel.opsguard.repository.IncidentRepository;
 import com.ktotopawel.opsguard.repository.UserRepository;
-import com.ktotopawel.opsguard.security.UserContext;
+import com.ktotopawel.opsguard.security.TestSecurityUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,14 +46,14 @@ public class IncidentServiceTest {
 
     @AfterEach
     public void tearDown() {
-        UserContext.clear();
+        TestSecurityUtils.clearSecurityContext();
     }
 
     @Test
     @DisplayName("Report Incident: Should save to DB and NOT publish for low severity Incident")
     void testLowSeverityIncident() {
         Long userId = 1L;
-        UserContext.set(userId);
+        TestSecurityUtils.setupSecurityContext(userId);
 
         IncidentRequest request = new IncidentRequest("Minor bug", Severity.LOW, List.of("FRONTEND", "UI"));
         User mockUserProxy = new User();
@@ -82,7 +82,7 @@ public class IncidentServiceTest {
     @DisplayName("Report Incident: Should save to the DB AND publish for critical severity Incident")
     void testCriticalSeverityIncident() throws JsonProcessingException {
         Long userId = 1L;
-        UserContext.set(userId);
+        TestSecurityUtils.setupSecurityContext(userId);
         User mockUserProxy = new User();
         mockUserProxy.setId(userId);
 
@@ -112,7 +112,7 @@ public class IncidentServiceTest {
     @DisplayName("Assign User: Should change the status of the incident, assign the correct user and save the data to the database")
     void testAssignUser() {
         Long userId = 1L;
-        UserContext.set(userId);
+        TestSecurityUtils.setupSecurityContext(userId);
         User mockUserProxy = new User();
         mockUserProxy.setId(userId);
 
@@ -139,7 +139,7 @@ public class IncidentServiceTest {
     @DisplayName("Assign User: Throws an exception when an incident is already closed")
     void testAssignUserWithAlreadyClosedIncident() {
         Long userId = 1L;
-        UserContext.set(userId);
+        TestSecurityUtils.setupSecurityContext(userId);
 
         Incident incident = new Incident();
         incident.setId(500L);
