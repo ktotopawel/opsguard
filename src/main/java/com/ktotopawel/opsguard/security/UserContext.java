@@ -1,7 +1,5 @@
 package com.ktotopawel.opsguard.security;
 
-import org.springframework.stereotype.Component;
-
 public class UserContext {
     private static final ThreadLocal<CurrentUser> currentUser = new ThreadLocal<>();
 
