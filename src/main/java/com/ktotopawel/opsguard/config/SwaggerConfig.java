@@ -11,15 +11,16 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
-        String securityScheme = "userIdHeader";
+        String securitySchemeName = "BearerAuth";
 
         return new OpenAPI()
                 .addSecurityItem(new SecurityRequirement()
-                        .addList(securityScheme))
+                        .addList(securitySchemeName))
                 .components(new Components()
-                        .addSecuritySchemes(securityScheme, new SecurityScheme()
-                                .name("X-User-Id")
-                                .type(SecurityScheme.Type.APIKEY)
-                                .in(SecurityScheme.In.HEADER)));
+                        .addSecuritySchemes(securitySchemeName, new SecurityScheme()
+                                .name(securitySchemeName)
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")));
     }
 }
