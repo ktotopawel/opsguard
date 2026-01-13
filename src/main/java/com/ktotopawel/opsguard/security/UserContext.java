@@ -1,20 +1,18 @@
 package com.ktotopawel.opsguard.security;
 
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+@RequiredArgsConstructor
 public class UserContext {
-    private static final ThreadLocal<CurrentUser> currentUser = new ThreadLocal<>();
 
     public static CurrentUser get() {
-        return currentUser.get();
-    }
-
-    public static void set(Long userId) {
-        CurrentUser user = new CurrentUser(userId);
-        currentUser.set(user);
-    }
-
-    public static void clear() {
-        currentUser.remove();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            return new CurrentUser(userDetails.getId());
+        }
+        throw new AuthenticationCredentialsNotFoundException("UserContext not found");
     }
 }
