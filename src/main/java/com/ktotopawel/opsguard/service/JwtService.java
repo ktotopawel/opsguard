@@ -17,9 +17,12 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-    private final String secret;
+private final String secret;
 
     public JwtService(@Value("${jwt.secret}") String secret) {
+        if (secret == null || secret.isEmpty()) {
+            throw new IllegalArgumentException("Secret cannot be null or empty");
+        }
         this.secret = secret;
     }
 
